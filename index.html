@@ -926,7 +926,6 @@
       </div>
       <p style="font-size:1.2rem; margin-top:10px; color:#ffd9e2;">✨ The magical psychologist-to-be IPS ✨</p>
 
-      <!-- MUSIC START BANNER -->
       <div class="music-start-banner" id="musicStartBanner" onclick="startEverything()">
         <i class="fas fa-gift"></i>
         <span>🌸 Tap here to start the celebration! 🌸</span>
@@ -1117,8 +1116,7 @@
 
     function startEverything() {
       unlockAudio();
-      // Big sakura bloom + popper combo
-      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.35);
+      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.35, 1.4);
       createFirework(canvas.width * 0.3, canvas.height * 0.5);
       createFirework(canvas.width * 0.7, canvas.height * 0.5);
       if (musicStartBanner) {
@@ -1148,7 +1146,7 @@
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
         musicPlaying = true;
       }
-      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.3);
+      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.3, 1);
     }
 
     // ---------- BACKGROUND ----------
@@ -1198,17 +1196,21 @@
       }
     })();
 
-    // ---------- CONFETTI / SAKURA / POPPER CANVAS ----------
+    // ---------- CONFETTI / SAKURA FLOWERS CANVAS ----------
     const canvas = document.getElementById('confetti-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];   // popper / firework sparks
-    let petals = [];      // floating bloomed sakura petals
+    let flowers = [];     // FULL sakura flowers
     const isMobile = window.innerWidth < 700;
 
-    // Sakura petal palette — soft pinks
-    const SAKURA_COLORS = [
-      '#ffc4d1', '#ffb7c5', '#ff9eb5', '#ff8da1', '#ffd9e2',
-      '#ffe3ea', '#ffadc2', '#ffb3c6', '#ffd0da'
+    // Sakura flower palettes — soft pinks & whites
+    const FLOWER_PALETTES = [
+      { petal: '#ffc4d1', deep: '#ff8da1', center: '#ffe066' },
+      { petal: '#ffd9e2', deep: '#ff9eb5', center: '#ffdd55' },
+      { petal: '#ffb7c5', deep: '#e56b7a', center: '#ffe066' },
+      { petal: '#fff0f5', deep: '#ffb3c6', center: '#ffcc33' },
+      { petal: '#ffadc2', deep: '#ff6f91', center: '#ffe066' },
+      { petal: '#ffe3ea', deep: '#ffc4d1', center: '#ffdd55' },
     ];
 
     function resizeCanvas() {
@@ -1235,81 +1237,124 @@
       }
     }
 
-    // ----- SAKURA BLOOM BURST (main effect) -----
-    // Spawns sakura petals that bloom outward and then gently fall & sway.
+    // ----- FULL SAKURA FLOWER BURST (main effect) -----
+    // Each burst spawns full 5-petal sakura blossoms that bloom, then drift & fall.
     function bloomSakuraBurst(x, y, intensity) {
       const mult = intensity || 1;
-      const count = (isMobile ? 22 : 36) * mult;
+      const count = Math.round((isMobile ? 14 : 22) * mult);
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 5 + 1.5;
-        const bloomAngle = Math.random() * Math.PI * 2; // petal spin start
-        petals.push({
-          x: x + (Math.random() - 0.5) * 20,
-          y: y + (Math.random() - 0.5) * 20,
+        const palette = FLOWER_PALETTES[Math.floor(Math.random() * FLOWER_PALETTES.length)];
+        flowers.push({
+          x: x + (Math.random() - 0.5) * 24,
+          y: y + (Math.random() - 0.5) * 24,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 1.5,     // gentle upward launch
-          gravity: 0.06 + Math.random() * 0.05,
+          vy: Math.sin(angle) * speed - 1.5,
+          gravity: 0.05 + Math.random() * 0.05,
           sway: Math.random() * Math.PI * 2,
           swaySpeed: 0.02 + Math.random() * 0.03,
-          swayAmp: 0.6 + Math.random() * 1.2,
-          size: (Math.random() * 10 + 12) * (isMobile ? 0.9 : 1.1),
-          color: SAKURA_COLORS[Math.floor(Math.random() * SAKURA_COLORS.length)],
-          rotation: bloomAngle,
-          rotationSpeed: (Math.random() - 0.5) * 0.15,
+          swayAmp: 0.5 + Math.random() * 1.0,
+          size: (Math.random() * 10 + 14) * (isMobile ? 0.95 : 1.15),
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.05,
+          petalColor: palette.petal,
+          deepColor: palette.deep,
+          centerColor: palette.center,
           life: 1.0,
-          decay: 0.006 + Math.random() * 0.006,
-          // bloom scale animates from 0 → 1 in first frames
+          decay: 0.0045 + Math.random() * 0.005,
           bloom: 0,
-          bloomSpeed: 0.06 + Math.random() * 0.05,
+          bloomSpeed: 0.04 + Math.random() * 0.04,
+          petals: 5,
         });
       }
     }
 
-    // Draw a single realistic sakura petal (curved teardrop shape)
-    function drawSakuraPetal(p) {
+    // Draw a single FULL 5-petal sakura flower
+    function drawSakuraFlower(f) {
+      const s = f.size * f.bloom;
       ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rotation);
 
-      const s = p.size * p.bloom;
-      ctx.globalAlpha = Math.min(1, p.life) * Math.min(1, p.bloom * 1.5);
+      const alpha = Math.min(1, f.life) * Math.min(1, f.bloom * 1.4);
+      ctx.globalAlpha = alpha;
 
-      // Glow
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 12;
+      // Soft glow behind the flower
+      ctx.shadowColor = f.petalColor;
+      ctx.shadowBlur = 14;
 
-      // Petal body — a curved teardrop with a notch at the top
+      // Draw 5 petals arranged around the center
+      for (let i = 0; i < f.petals; i++) {
+        const angle = (Math.PI * 2 / f.petals) * i;
+        ctx.save();
+        ctx.rotate(angle);
+
+        // Petal shape: curved teardrop with a notched tip (sakura signature)
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(
+          s * 0.55, -s * 0.30,
+          s * 0.55, -s * 0.85,
+          s * 0.10, -s * 0.98
+        );
+        // Notch at tip
+        ctx.lineTo(0, -s * 0.85);
+        ctx.lineTo(-s * 0.10, -s * 0.98);
+        ctx.bezierCurveTo(
+          -s * 0.55, -s * 0.85,
+          -s * 0.55, -s * 0.30,
+          0, 0
+        );
+        ctx.closePath();
+
+        // Radial gradient for depth (lighter at tip, deeper at base)
+        const grad = ctx.createRadialGradient(0, -s * 0.5, 1, 0, -s * 0.4, s * 0.9);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.35, f.petalColor);
+        grad.addColorStop(0.85, f.deepColor);
+        grad.addColorStop(1, f.deepColor);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Subtle petal outline
+        ctx.strokeStyle = 'rgba(255, 200, 215, 0.6)';
+        ctx.lineWidth = Math.max(0.5, s * 0.04);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // Center stamen ring
       ctx.beginPath();
-      ctx.moveTo(0, -s * 0.5);                     // top center
-      ctx.bezierCurveTo(
-        s * 0.55, -s * 0.55,   // right control 1
-        s * 0.6, s * 0.35,     // right control 2
-        0, s * 0.55            // bottom center
-      );
-      ctx.bezierCurveTo(
-        -s * 0.6, s * 0.35,
-        -s * 0.55, -s * 0.55,
-        0, -s * 0.5
-      );
-      ctx.closePath();
-
-      // Gradient for depth
-      const grad = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 0.7);
-      grad.addColorStop(0, '#fff5f8');
-      grad.addColorStop(0.5, p.color);
-      grad.addColorStop(1, '#e56b7a');
-      ctx.fillStyle = grad;
+      ctx.arc(0, 0, s * 0.28, 0, Math.PI * 2);
+      const centerGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 0.28);
+      centerGrad.addColorStop(0, '#fff8c4');
+      centerGrad.addColorStop(0.6, f.centerColor);
+      centerGrad.addColorStop(1, '#ffb84d');
+      ctx.fillStyle = centerGrad;
       ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 120, 80, 0.7)';
+      ctx.lineWidth = Math.max(0.5, s * 0.03);
+      ctx.stroke();
 
-      // Top notch detail (sakura signature)
+      // Little stamen dots around the center
+      ctx.shadowBlur = 0;
+      const dotCount = 6;
+      for (let i = 0; i < dotCount; i++) {
+        const a = (Math.PI * 2 / dotCount) * i + f.rotation;
+        const dx = Math.cos(a) * s * 0.35;
+        const dy = Math.sin(a) * s * 0.35;
+        ctx.beginPath();
+        ctx.arc(dx, dy, s * 0.06, 0, Math.PI * 2);
+        ctx.fillStyle = '#c93a5b';
+        ctx.fill();
+      }
+
+      // Central highlight dot
       ctx.beginPath();
-      ctx.moveTo(0, -s * 0.5);
-      ctx.lineTo(-s * 0.12, -s * 0.32);
-      ctx.lineTo(0, -s * 0.38);
-      ctx.lineTo(s * 0.12, -s * 0.32);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(255, 240, 245, 0.9)';
+      ctx.arc(0, 0, s * 0.08, 0, Math.PI * 2);
+      ctx.fillStyle = '#8b1e3a';
       ctx.fill();
 
       ctx.restore();
@@ -1327,23 +1372,20 @@
         p.life -= 0.018;
         if (p.life <= 0) particles.splice(i, 1);
       }
-      // Sakura petals
-      for (let i = petals.length - 1; i >= 0; i--) {
-        const p = petals[i];
-        // bloom growth
-        if (p.bloom < 1) p.bloom = Math.min(1, p.bloom + p.bloomSpeed);
-        // physics
-        p.vy += p.gravity;
-        p.vx *= 0.985;
-        p.vy *= 0.985;
-        p.sway += p.swaySpeed;
-        p.rotation += p.rotationSpeed;
-        p.x += p.vx + Math.sin(p.sway) * p.swayAmp * 0.3;
-        p.y += p.vy;
-        p.life -= p.decay;
-        // remove when off-screen or faded
-        if (p.life <= 0 || p.y > canvas.height + 60 || p.x < -80 || p.x > canvas.width + 80) {
-          petals.splice(i, 1);
+      // Full sakura flowers
+      for (let i = flowers.length - 1; i >= 0; i--) {
+        const f = flowers[i];
+        if (f.bloom < 1) f.bloom = Math.min(1, f.bloom + f.bloomSpeed);
+        f.vy += f.gravity;
+        f.vx *= 0.985;
+        f.vy *= 0.985;
+        f.sway += f.swaySpeed;
+        f.rotation += f.rotationSpeed;
+        f.x += f.vx + Math.sin(f.sway) * f.swayAmp * 0.3;
+        f.y += f.vy;
+        f.life -= f.decay;
+        if (f.life <= 0 || f.y > canvas.height + 80 || f.x < -100 || f.x > canvas.width + 100) {
+          flowers.splice(i, 1);
         }
       }
     }
@@ -1351,7 +1393,7 @@
     function drawParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw popper particles first (behind petals)
+      // Popper particles (behind)
       particles.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
@@ -1361,21 +1403,21 @@
         ctx.globalAlpha = 1;
       });
 
-      // Draw sakura petals on top
-      petals.forEach(p => drawSakuraPetal(p));
+      // Full sakura flowers (on top)
+      flowers.forEach(f => drawSakuraFlower(f));
     }
 
     let lastFireworkTime = 0;
     function animate(timestamp) {
       updateParticles();
       drawParticles();
-      // Ambient gentle sakura burst occasionally (popper still appears sometimes)
-      if (timestamp - lastFireworkTime > 4000 && petals.length < 180 && particles.length < 120) {
-        if (Math.random() < 0.5) {
+      // Ambient gentle sakura flower bursts occasionally
+      if (timestamp - lastFireworkTime > 4000 && flowers.length < 90 && particles.length < 100) {
+        if (Math.random() < 0.55) {
           bloomSakuraBurst(
             Math.random() * canvas.width,
             Math.random() * canvas.height * 0.5 + 50,
-            0.6
+            0.55
           );
           lastFireworkTime = timestamp;
         }
@@ -1384,11 +1426,10 @@
     }
     requestAnimationFrame(animate);
 
-    // Opening celebration — big sakura bloom!
+    // Opening celebration — big full sakura flower bloom!
     setTimeout(() => {
       bloomSakuraBurst(canvas.width * 0.3, canvas.height * 0.3, 1.4);
       bloomSakuraBurst(canvas.width * 0.7, canvas.height * 0.4, 1.4);
-      // small popper accents
       createFirework(canvas.width * 0.3, canvas.height * 0.3);
       createFirework(canvas.width * 0.7, canvas.height * 0.4);
     }, 500);
@@ -1404,7 +1445,7 @@
 
       gift.classList.add('opened');
       
-      // Big sakura bloom on gift open!
+      // Big full sakura flower bloom on gift open!
       for (let i = 0; i < 6; i++) {
         setTimeout(() => bloomSakuraBurst(
           canvas.width * (0.2 + Math.random() * 0.6),
@@ -1412,7 +1453,6 @@
           1
         ), i * 120);
       }
-      // Popper accents
       createFirework(canvas.width * 0.5, canvas.height * 0.4);
 
       icon.className = 'fas fa-heart';
@@ -1438,7 +1478,6 @@
 
     function closeSurprise() {
       document.getElementById('surpriseOverlay').classList.remove('active');
-      // Sakura bloom on close
       for (let i = 0; i < 5; i++) {
         setTimeout(() => bloomSakuraBurst(
           canvas.width * (0.2 + Math.random() * 0.6),
@@ -1460,7 +1499,6 @@
       const cy = rect.top + rect.height / 2;
 
       if (isOff) {
-        // Small sakura puff
         bloomSakuraBurst(cx, cy, 0.5);
         createFirework(cx, cy);
       } else {
@@ -1473,7 +1511,7 @@
       
       if (allOff) {
         setTimeout(() => {
-          // Massive sakura bloom celebration when all candles out
+          // Massive full sakura bloom celebration
           for (let i = 0; i < 10; i++) {
             setTimeout(() => bloomSakuraBurst(
               canvas.width * (0.15 + Math.random() * 0.7),
@@ -1481,7 +1519,6 @@
               1.3
             ), i * 130);
           }
-          // Popper accents
           for (let i = 0; i < 4; i++) {
             setTimeout(() => createFirework(
               canvas.width * (0.3 + Math.random() * 0.4),
@@ -1532,7 +1569,6 @@
         display.style.opacity = '1';
         display.style.transform = 'scale(1)';
       }, 150);
-      // Sakura bloom for the wish
       bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.5, 1.1);
     }
 
@@ -1556,7 +1592,7 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // tiny random sakura bloom on tap
+    // tiny random full sakura bloom on tap
     document.addEventListener('click', function(e) {
       if (e.target.closest('.gift-box') || e.target.closest('.jar') ||
           e.target.closest('.music-player') || e.target.closest('.candle') ||
