@@ -146,7 +146,7 @@
       font-size: clamp(0.9rem, 3.5vw, 1.2rem) !important;
     }
 
-    /* ---- MUSIC START BANNER (new) ---- */
+    /* ---- MUSIC START BANNER ---- */
     .music-start-banner {
       display: flex;
       align-items: center;
@@ -682,7 +682,7 @@
       justify-content: center;
     }
 
-    /* ---- GALLERY (fixed for mobile) ---- */
+    /* ---- GALLERY ---- */
     .gallery {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -871,7 +871,6 @@
       .candle .flame { width: 10px; height: 14px; top: -17px; }
     }
 
-    /* ---- Mobile image safety net + sakura boost ---- */
     @media (max-width: 700px) {
       .photo-card {
         border-radius: 16px;
@@ -909,7 +908,7 @@
   <!-- SURPRISE OVERLAY -->
   <div class="surprise-overlay" id="surpriseOverlay">
     <div class="surprise-content">
-      <span class="big-emoji">🎁✨</span>
+      <span class="big-emoji">🌸✨</span>
       <h2>Surprise, Devimol!</h2>
       <p>You are the most incredible best friend anyone could ever ask for. Your brain, your heart, your loyalty — everything about you is pure magic. 🫶</p>
       <p class="special-line">🌷 Wishing you all the success in the world! 🌷</p>
@@ -927,10 +926,10 @@
       </div>
       <p style="font-size:1.2rem; margin-top:10px; color:#ffd9e2;">✨ The magical psychologist-to-be IPS ✨</p>
 
-      <!-- MUSIC START BANNER (new) -->
+      <!-- MUSIC START BANNER -->
       <div class="music-start-banner" id="musicStartBanner" onclick="startEverything()">
         <i class="fas fa-gift"></i>
-        <span>🎵 Tap here to start the celebration!</span>
+        <span>🌸 Tap here to start the celebration! 🌸</span>
         <i class="fas fa-music"></i>
       </div>
     </div>
@@ -1067,7 +1066,6 @@
       } catch(e) {}
     }
 
-    // Start music on load (works on desktop; mobile will start on first tap)
     window.addEventListener('load', () => {
       loadYouTubeAudio();
       ytReady = true;
@@ -1088,7 +1086,6 @@
       }, 4000);
     });
 
-    // Unlock audio on the VERY FIRST interaction anywhere on the page
     let audioUnlocked = false;
     function unlockAudio() {
       if (audioUnlocked) return;
@@ -1100,11 +1097,9 @@
         musicIcon.className = 'fas fa-pause-circle';
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
       }
-      // Hide the banner once music has been triggered
       if (musicStartBanner) musicStartBanner.classList.add('hidden');
     }
 
-    // Cover every possible user interaction — even the tiniest scroll
     ['click', 'touchstart', 'touchend', 'touchmove', 'pointerdown', 'pointermove',
      'keydown', 'keyup', 'scroll', 'wheel', 'mousedown', 'mouseup', 'mousemove',
      'gesturestart', 'gesturechange', 'gestureend']
@@ -1113,7 +1108,6 @@
         window.addEventListener(evt, unlockAudio, { once: true, passive: true });
       });
 
-    // Also unlock when the user scrolls even 1px
     let lastScrollY = window.scrollY;
     window.addEventListener('scroll', () => {
       if (Math.abs(window.scrollY - lastScrollY) > 0) {
@@ -1121,21 +1115,18 @@
       }
     }, { passive: true });
 
-    // The big banner button — this definitely starts the music
     function startEverything() {
       unlockAudio();
-      // Fire a celebratory burst
-      createFirework(canvas.width * 0.5, canvas.height * 0.35);
+      // Big sakura bloom + popper combo
+      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.35);
       createFirework(canvas.width * 0.3, canvas.height * 0.5);
       createFirework(canvas.width * 0.7, canvas.height * 0.5);
-      // Pulse animation feedback
       if (musicStartBanner) {
         musicStartBanner.style.transform = 'scale(0.9)';
         setTimeout(() => {
           musicStartBanner.style.transform = '';
         }, 200);
       }
-      // Open the surprise overlay as a nice welcome gesture
       setTimeout(() => {
         document.getElementById('surpriseOverlay').classList.add('active');
       }, 400);
@@ -1157,7 +1148,7 @@
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
         musicPlaying = true;
       }
-      createFirework(canvas.width * 0.5, canvas.height * 0.3);
+      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.3);
     }
 
     // ---------- BACKGROUND ----------
@@ -1207,11 +1198,18 @@
       }
     })();
 
-    // ---------- CONFETTI ----------
+    // ---------- CONFETTI / SAKURA / POPPER CANVAS ----------
     const canvas = document.getElementById('confetti-canvas');
     const ctx = canvas.getContext('2d');
-    let particles = [];
+    let particles = [];   // popper / firework sparks
+    let petals = [];      // floating bloomed sakura petals
     const isMobile = window.innerWidth < 700;
+
+    // Sakura petal palette — soft pinks
+    const SAKURA_COLORS = [
+      '#ffc4d1', '#ffb7c5', '#ff9eb5', '#ff8da1', '#ffd9e2',
+      '#ffe3ea', '#ffadc2', '#ffb3c6', '#ffd0da'
+    ];
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -1220,23 +1218,105 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
+    // ----- POPPER / FIREWORK (secondary effect) -----
     function createFirework(x, y) {
-      const count = isMobile ? 40 : 60;
+      const count = isMobile ? 22 : 34;
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 6 + 2;
+        const speed = Math.random() * 5 + 2;
         particles.push({
           x: x, y: y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           life: 1.0,
-          color: `hsl(${Math.random() * 360}, 90%, 70%)`,
-          size: Math.random() * 5 + 2.5,
+          color: `hsl(${Math.random() * 60 + 320}, 95%, 75%)`,
+          size: Math.random() * 4 + 2,
         });
       }
     }
 
+    // ----- SAKURA BLOOM BURST (main effect) -----
+    // Spawns sakura petals that bloom outward and then gently fall & sway.
+    function bloomSakuraBurst(x, y, intensity) {
+      const mult = intensity || 1;
+      const count = (isMobile ? 22 : 36) * mult;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 1.5;
+        const bloomAngle = Math.random() * Math.PI * 2; // petal spin start
+        petals.push({
+          x: x + (Math.random() - 0.5) * 20,
+          y: y + (Math.random() - 0.5) * 20,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,     // gentle upward launch
+          gravity: 0.06 + Math.random() * 0.05,
+          sway: Math.random() * Math.PI * 2,
+          swaySpeed: 0.02 + Math.random() * 0.03,
+          swayAmp: 0.6 + Math.random() * 1.2,
+          size: (Math.random() * 10 + 12) * (isMobile ? 0.9 : 1.1),
+          color: SAKURA_COLORS[Math.floor(Math.random() * SAKURA_COLORS.length)],
+          rotation: bloomAngle,
+          rotationSpeed: (Math.random() - 0.5) * 0.15,
+          life: 1.0,
+          decay: 0.006 + Math.random() * 0.006,
+          // bloom scale animates from 0 → 1 in first frames
+          bloom: 0,
+          bloomSpeed: 0.06 + Math.random() * 0.05,
+        });
+      }
+    }
+
+    // Draw a single realistic sakura petal (curved teardrop shape)
+    function drawSakuraPetal(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+
+      const s = p.size * p.bloom;
+      ctx.globalAlpha = Math.min(1, p.life) * Math.min(1, p.bloom * 1.5);
+
+      // Glow
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 12;
+
+      // Petal body — a curved teardrop with a notch at the top
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.5);                     // top center
+      ctx.bezierCurveTo(
+        s * 0.55, -s * 0.55,   // right control 1
+        s * 0.6, s * 0.35,     // right control 2
+        0, s * 0.55            // bottom center
+      );
+      ctx.bezierCurveTo(
+        -s * 0.6, s * 0.35,
+        -s * 0.55, -s * 0.55,
+        0, -s * 0.5
+      );
+      ctx.closePath();
+
+      // Gradient for depth
+      const grad = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 0.7);
+      grad.addColorStop(0, '#fff5f8');
+      grad.addColorStop(0.5, p.color);
+      grad.addColorStop(1, '#e56b7a');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Top notch detail (sakura signature)
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.5);
+      ctx.lineTo(-s * 0.12, -s * 0.32);
+      ctx.lineTo(0, -s * 0.38);
+      ctx.lineTo(s * 0.12, -s * 0.32);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 240, 245, 0.9)';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
     function updateParticles() {
+      // Popper particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -1244,13 +1324,34 @@
         p.vy += 0.12;
         p.vx *= 0.99;
         p.vy *= 0.99;
-        p.life -= 0.015;
+        p.life -= 0.018;
         if (p.life <= 0) particles.splice(i, 1);
+      }
+      // Sakura petals
+      for (let i = petals.length - 1; i >= 0; i--) {
+        const p = petals[i];
+        // bloom growth
+        if (p.bloom < 1) p.bloom = Math.min(1, p.bloom + p.bloomSpeed);
+        // physics
+        p.vy += p.gravity;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+        p.sway += p.swaySpeed;
+        p.rotation += p.rotationSpeed;
+        p.x += p.vx + Math.sin(p.sway) * p.swayAmp * 0.3;
+        p.y += p.vy;
+        p.life -= p.decay;
+        // remove when off-screen or faded
+        if (p.life <= 0 || p.y > canvas.height + 60 || p.x < -80 || p.x > canvas.width + 80) {
+          petals.splice(i, 1);
+        }
       }
     }
 
     function drawParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw popper particles first (behind petals)
       particles.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
@@ -1259,15 +1360,23 @@
         ctx.fill();
         ctx.globalAlpha = 1;
       });
+
+      // Draw sakura petals on top
+      petals.forEach(p => drawSakuraPetal(p));
     }
 
     let lastFireworkTime = 0;
     function animate(timestamp) {
       updateParticles();
       drawParticles();
-      if (timestamp - lastFireworkTime > 4000 && particles.length < 200) {
-        if (Math.random() < 0.4) {
-          createFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.6);
+      // Ambient gentle sakura burst occasionally (popper still appears sometimes)
+      if (timestamp - lastFireworkTime > 4000 && petals.length < 180 && particles.length < 120) {
+        if (Math.random() < 0.5) {
+          bloomSakuraBurst(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height * 0.5 + 50,
+            0.6
+          );
           lastFireworkTime = timestamp;
         }
       }
@@ -1275,7 +1384,11 @@
     }
     requestAnimationFrame(animate);
 
+    // Opening celebration — big sakura bloom!
     setTimeout(() => {
+      bloomSakuraBurst(canvas.width * 0.3, canvas.height * 0.3, 1.4);
+      bloomSakuraBurst(canvas.width * 0.7, canvas.height * 0.4, 1.4);
+      // small popper accents
       createFirework(canvas.width * 0.3, canvas.height * 0.3);
       createFirework(canvas.width * 0.7, canvas.height * 0.4);
     }, 500);
@@ -1291,12 +1404,16 @@
 
       gift.classList.add('opened');
       
-      for (let i = 0; i < 10; i++) {
-        setTimeout(() => createFirework(
+      // Big sakura bloom on gift open!
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => bloomSakuraBurst(
           canvas.width * (0.2 + Math.random() * 0.6),
-          canvas.height * (0.2 + Math.random() * 0.6)
+          canvas.height * (0.2 + Math.random() * 0.6),
+          1
         ), i * 120);
       }
+      // Popper accents
+      createFirework(canvas.width * 0.5, canvas.height * 0.4);
 
       icon.className = 'fas fa-heart';
       icon.style.color = '#fff0f3';
@@ -1321,12 +1438,15 @@
 
     function closeSurprise() {
       document.getElementById('surpriseOverlay').classList.remove('active');
-      for (let i = 0; i < 6; i++) {
-        setTimeout(() => createFirework(
+      // Sakura bloom on close
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => bloomSakuraBurst(
           canvas.width * (0.2 + Math.random() * 0.6),
-          canvas.height * (0.2 + Math.random() * 0.5)
-        ), i * 120);
+          canvas.height * (0.2 + Math.random() * 0.5),
+          0.9
+        ), i * 130);
       }
+      createFirework(canvas.width * 0.5, canvas.height * 0.4);
     }
 
     // ---------- CANDLES ----------
@@ -1340,13 +1460,9 @@
       const cy = rect.top + rect.height / 2;
 
       if (isOff) {
+        // Small sakura puff
+        bloomSakuraBurst(cx, cy, 0.5);
         createFirework(cx, cy);
-        for (let i = 0; i < 3; i++) {
-          setTimeout(() => createFirework(
-            cx + (Math.random() - 0.5) * 100,
-            cy + (Math.random() - 0.5) * 100
-          ), i * 100);
-        }
       } else {
         createFirework(cx, cy);
       }
@@ -1357,16 +1473,25 @@
       
       if (allOff) {
         setTimeout(() => {
-          for (let i = 0; i < 12; i++) {
+          // Massive sakura bloom celebration when all candles out
+          for (let i = 0; i < 10; i++) {
+            setTimeout(() => bloomSakuraBurst(
+              canvas.width * (0.15 + Math.random() * 0.7),
+              canvas.height * (0.15 + Math.random() * 0.5),
+              1.3
+            ), i * 130);
+          }
+          // Popper accents
+          for (let i = 0; i < 4; i++) {
             setTimeout(() => createFirework(
-              canvas.width * (0.2 + Math.random() * 0.6),
-              canvas.height * (0.2 + Math.random() * 0.5)
-            ), i * 150);
+              canvas.width * (0.3 + Math.random() * 0.4),
+              canvas.height * (0.3 + Math.random() * 0.3)
+            ), i * 250);
           }
           if (candleText) {
-            candleText.innerHTML = '🎉 Wish made! May it come true! 🎉';
-            candleText.style.color = '#ffe066';
-            candleText.style.textShadow = '0 0 15px #ffaa00';
+            candleText.innerHTML = '🌸 Wish made! May it bloom beautifully! 🌸';
+            candleText.style.color = '#ffc4d1';
+            candleText.style.textShadow = '0 0 15px #ff4d6d';
             setTimeout(() => {
               candleText.innerHTML = '🕯️ Tap candles to blow them out';
               candleText.style.color = '';
@@ -1407,7 +1532,8 @@
         display.style.opacity = '1';
         display.style.transform = 'scale(1)';
       }, 150);
-      createFirework(canvas.width * 0.5, canvas.height * 0.5);
+      // Sakura bloom for the wish
+      bloomSakuraBurst(canvas.width * 0.5, canvas.height * 0.5, 1.1);
     }
 
     // ---------- COUNTDOWN ----------
@@ -1430,20 +1556,20 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // tiny random bursts on tap
+    // tiny random sakura bloom on tap
     document.addEventListener('click', function(e) {
       if (e.target.closest('.gift-box') || e.target.closest('.jar') ||
           e.target.closest('.music-player') || e.target.closest('.candle') ||
           e.target.closest('.surprise-close') || e.target.closest('.music-start-banner')) return;
-      if (Math.random() < 0.25) {
-        createFirework(e.clientX, e.clientY);
+      if (Math.random() < 0.35) {
+        bloomSakuraBurst(e.clientX, e.clientY, 0.7);
       }
     });
 
     window.addEventListener('load', () => {
       setTimeout(() => {
-        createFirework(canvas.width * 0.2, canvas.height * 0.4);
-        createFirework(canvas.width * 0.8, canvas.height * 0.5);
+        bloomSakuraBurst(canvas.width * 0.2, canvas.height * 0.4, 1);
+        bloomSakuraBurst(canvas.width * 0.8, canvas.height * 0.5, 1);
       }, 300);
     });
   </script>
