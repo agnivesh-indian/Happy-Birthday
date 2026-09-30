@@ -970,10 +970,24 @@
       ytIframe.src = `https://www.youtube-nocookie.com/embed/${YT_VIDEO_ID}?autoplay=1&loop=1&playlist=${YT_VIDEO_ID}&controls=0&showinfo=0&modestbranding=1&enablejsapi=1&playsinline=1&rel=0&mute=0`;
     }
 
+    // Set YouTube player volume to max (100)
+    function setYouTubeVolume(volume) {
+      try {
+        ytIframe.contentWindow.postMessage(
+          `{"event":"command","func":"setVolume","args":[${volume}]}`,
+          '*'
+        );
+      } catch(e) {}
+    }
+
     window.addEventListener('load', () => {
       setTimeout(() => {
         loadYouTubeAudio();
         ytReady = true;
+        // Force volume to max once iframe loads, with retries
+        setTimeout(() => setYouTubeVolume(100), 1000);
+        setTimeout(() => setYouTubeVolume(100), 2000);
+        setTimeout(() => setYouTubeVolume(100), 3500);
       }, 300);
     });
 
@@ -982,6 +996,7 @@
       if (!userInteracted && ytReady && musicPlaying) {
         try {
           ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+          ytIframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
         } catch(e) {}
       }
       userInteracted = true;
@@ -1000,6 +1015,7 @@
       } else {
         try {
           ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+          ytIframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
         } catch(e) {}
         musicIcon.className = 'fas fa-pause-circle';
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
