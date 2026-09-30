@@ -48,19 +48,20 @@
 
     .sakura-petal {
       position: absolute;
-      color: #ffb7c5;
+      color: #ffc4d1;
       font-size: 1.5rem;
-      opacity: 0.4;
+      opacity: 0.85;
       animation: floatPetal 16s infinite linear;
-      filter: drop-shadow(0 0 6px #ff99aa);
+      filter: drop-shadow(0 0 10px #ffb7c5) drop-shadow(0 0 20px #ff8da1);
       user-select: none;
       will-change: transform;
+      text-shadow: 0 0 15px #ffb7c5, 0 0 30px #ff8da1;
     }
 
     @keyframes floatPetal {
-      0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.2; }
-      50% { opacity: 0.7; }
-      100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.55; }
+      50% { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0.55; }
     }
 
     .star {
@@ -613,11 +614,11 @@
       justify-content: center;
     }
 
-    /* ---- GALLERY ---- */
+    /* ---- GALLERY (fixed for mobile) ---- */
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-      gap: 0.7rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
       justify-content: center;
       margin: 1rem 0;
     }
@@ -634,6 +635,20 @@
       box-shadow: 0 8px 12px #00000050, 0 0 0 2px #ffb3c680;
       transition: all 0.3s;
       border: 1px solid #ffccd9;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .photo-card img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      border-radius: inherit;
     }
 
     .photo-card:active {
@@ -788,6 +803,25 @@
       .candle .flame { width: 10px; height: 14px; top: -17px; }
     }
 
+    /* ---- Mobile image safety net + sakura boost ---- */
+    @media (max-width: 700px) {
+      .photo-card {
+        border-radius: 16px;
+        box-shadow: 0 6px 10px #00000060, 0 0 0 2px #ffb3c6aa;
+      }
+      
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0 0.25rem;
+      }
+
+      .sakura-petal {
+        font-size: 1.8rem !important;
+        filter: drop-shadow(0 0 12px #ffb7c5) drop-shadow(0 0 22px #ff6f91) !important;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -881,12 +915,12 @@
     <div class="section">
       <h2><i class="fas fa-camera"></i> Memory Lane</h2>
       <div class="gallery">
-  <div class="photo-card"><img src="https://i.imgur.com/tpTH4nU.jpeg" alt="Memory 1"></div>
-  <div class="photo-card"><img src="https://i.imgur.com/pZrgmoL.jpeg" alt="Memory 2"></div>
-  <div class="photo-card"><img src="https://i.imgur.com/qZbB9xQ.jpeg" alt="Memory 3"></div>
-  <div class="photo-card"><img src="https://i.imgur.com/xbZIdcf.jpeg" alt="Memory 4"></div>
-  <div class="photo-card"><img src="https://i.imgur.com/1UarLun.jpeg" alt="Memory 5"></div>
-</div>
+        <div class="photo-card"><img src="https://i.imgur.com/tpTH4nU.jpeg" alt="Memory 1"></div>
+        <div class="photo-card"><img src="https://i.imgur.com/pZrgmoL.jpeg" alt="Memory 2"></div>
+        <div class="photo-card"><img src="https://i.imgur.com/qZbB9xQ.jpeg" alt="Memory 3"></div>
+        <div class="photo-card"><img src="https://i.imgur.com/xbZIdcf.jpeg" alt="Memory 4"></div>
+        <div class="photo-card"><img src="https://i.imgur.com/1UarLun.jpeg" alt="Memory 5"></div>
+      </div>
       <p style="text-align:center; font-size:0.9rem; opacity:0.8;">(Every moment with you is a masterpiece)</p>
     </div>
 
@@ -923,7 +957,6 @@
 
   <script>
     // ---------- MUSIC AUTOPLAY ----------
-    // YouTube video ID for BTS - Dynamite (official audio)
     const YT_VIDEO_ID = 'gdZLi9oWNZg';
     let musicPlaying = true;
     let ytReady = false;
@@ -932,13 +965,10 @@
     const musicIcon = document.getElementById('musicIcon');
     const musicText = document.getElementById('musicText');
 
-    // Set the src to enable autoplay
     function loadYouTubeAudio() {
-      // Use youtube-nocookie + enablejsapi for better autoplay compliance
       ytIframe.src = `https://www.youtube-nocookie.com/embed/${YT_VIDEO_ID}?autoplay=1&loop=1&playlist=${YT_VIDEO_ID}&controls=0&showinfo=0&modestbranding=1&enablejsapi=1&playsinline=1&rel=0&mute=0`;
     }
 
-    // Try to autoplay on load
     window.addEventListener('load', () => {
       setTimeout(() => {
         loadYouTubeAudio();
@@ -946,11 +976,9 @@
       }, 300);
     });
 
-    // Fallback: if browser blocks, first user tap will start music
     let userInteracted = false;
     function ensureMusicPlays() {
       if (!userInteracted && ytReady && musicPlaying) {
-        // Send play command via postMessage
         try {
           ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
         } catch(e) {}
@@ -962,7 +990,6 @@
 
     function toggleMusic() {
       if (musicPlaying) {
-        // pause
         try {
           ytIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
         } catch(e) {}
@@ -970,7 +997,6 @@
         musicText.innerHTML = '🎵 BTS - Dynamite (tap to play)';
         musicPlaying = false;
       } else {
-        // play
         try {
           ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
         } catch(e) {}
@@ -986,7 +1012,7 @@
       const sakuraContainer = document.getElementById('sakuraBg');
       const starContainer = document.getElementById('starBg');
       const isMobile = window.innerWidth < 700;
-      const petalCount = isMobile ? 15 : 30;
+      const petalCount = isMobile ? 30 : 30;
       const starCount = isMobile ? 25 : 50;
 
       for (let i = 0; i < petalCount; i++) {
@@ -995,8 +1021,9 @@
         petal.innerHTML = '🌸';
         petal.style.left = Math.random() * 100 + '%';
         petal.style.animationDelay = Math.random() * 16 + 's';
-        petal.style.fontSize = (Math.random() * 1.2 + 1) + 'rem';
-        petal.style.opacity = Math.random() * 0.5 + 0.2;
+        const baseSize = isMobile ? 1.6 : 1;
+        petal.style.fontSize = (Math.random() * 1.2 + baseSize) + 'rem';
+        petal.style.opacity = Math.random() * 0.4 + 0.6;
         sakuraContainer.appendChild(petal);
       }
       for (let i = 0; i < starCount; i++) {
@@ -1111,7 +1138,6 @@
 
       gift.classList.add('opened');
       
-      // big confetti burst
       for (let i = 0; i < 10; i++) {
         setTimeout(() => createFirework(
           canvas.width * (0.2 + Math.random() * 0.6),
@@ -1125,12 +1151,10 @@
       label.textContent = '💖 Surprise! 💖';
       label.style.background = '#ffe066cc';
 
-      // Show the surprise overlay after a short delay
       setTimeout(() => {
         document.getElementById('surpriseOverlay').classList.add('active');
       }, 500);
 
-      // reset gift box appearance after overlay is closed
       setTimeout(() => {
         gift.classList.remove('opened');
         icon.className = 'fas fa-gift';
@@ -1144,7 +1168,6 @@
 
     function closeSurprise() {
       document.getElementById('surpriseOverlay').classList.remove('active');
-      // extra celebration on close
       for (let i = 0; i < 6; i++) {
         setTimeout(() => createFirework(
           canvas.width * (0.2 + Math.random() * 0.6),
