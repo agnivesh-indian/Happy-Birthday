@@ -146,6 +146,74 @@
       font-size: clamp(0.9rem, 3.5vw, 1.2rem) !important;
     }
 
+    /* ---- MUSIC START BANNER (new) ---- */
+    .music-start-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 1rem auto 0.5rem;
+      padding: 14px 22px;
+      width: fit-content;
+      max-width: 95%;
+      background: linear-gradient(135deg, #ff8da1, #ff4d6d, #ffb3c6);
+      background-size: 200% 200%;
+      color: #2e0b1a;
+      font-weight: 700;
+      font-size: clamp(0.9rem, 3.6vw, 1.15rem);
+      letter-spacing: 0.5px;
+      border-radius: 60px;
+      border: 2px solid #fff0f3;
+      box-shadow: 0 0 30px #ff4d6d, 0 0 60px #ff99aa, inset 0 0 15px rgba(255,255,255,0.5);
+      cursor: pointer;
+      user-select: none;
+      animation: bannerPulse 1.6s infinite, bannerShift 4s infinite;
+      transition: transform 0.2s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .music-start-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%);
+      transform: translateX(-100%);
+      animation: bannerShine 2.4s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes bannerShine {
+      0% { transform: translateX(-100%); }
+      45% { transform: translateX(100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @keyframes bannerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes bannerShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .music-start-banner:active {
+      transform: scale(0.96);
+    }
+
+    .music-start-banner i {
+      font-size: 1.3em;
+      animation: bounceEmoji 1s infinite alternate;
+    }
+
+    .music-start-banner.hidden {
+      display: none;
+    }
+
     /* ---- confetti + balloons ---- */
     #confetti-canvas {
       position: fixed;
@@ -844,7 +912,7 @@
       <span class="big-emoji">🎁✨</span>
       <h2>Surprise, Devimol!</h2>
       <p>You are the most incredible best friend anyone could ever ask for. Your brain, your heart, your loyalty — everything about you is pure magic. 🫶</p>
-      <p class="special-line">🌷 Saare Jahaan se achaa... you! 🌷</p>
+      <p class="special-line">🌷 Wishing you all the success in the world! 🌷</p>
       <p style="font-size:0.95em; opacity:0.9;">Can't wait to see you in that IPS uniform. Until then, keep being the amazing, hilarious, genius Little Donkey you are. 😄</p>
       <button class="surprise-close" onclick="closeSurprise()">💖 Aww, thank you! 💖</button>
     </div>
@@ -858,6 +926,13 @@
         <i class="fas fa-star"></i> 22nd Birthday <i class="fas fa-star"></i>
       </div>
       <p style="font-size:1.2rem; margin-top:10px; color:#ffd9e2;">✨ The magical psychologist-to-be IPS ✨</p>
+
+      <!-- MUSIC START BANNER (new) -->
+      <div class="music-start-banner" id="musicStartBanner" onclick="startEverything()">
+        <i class="fas fa-gift"></i>
+        <span>🎵 Tap here to start the celebration!</span>
+        <i class="fas fa-music"></i>
+      </div>
     </div>
 
     <div class="section">
@@ -965,12 +1040,12 @@
     const ytContainer = document.getElementById('ytAudioContainer');
     const musicIcon = document.getElementById('musicIcon');
     const musicText = document.getElementById('musicText');
+    const musicStartBanner = document.getElementById('musicStartBanner');
 
     function loadYouTubeAudio() {
       ytIframe.src = `https://www.youtube-nocookie.com/embed/${YT_VIDEO_ID}?autoplay=1&loop=1&playlist=${YT_VIDEO_ID}&controls=0&showinfo=0&modestbranding=1&enablejsapi=1&playsinline=1&rel=0&mute=0`;
     }
 
-    // Set YouTube player volume to max (100)
     function setYouTubeVolume(volume) {
       try {
         ytIframe.contentWindow.postMessage(
@@ -980,14 +1055,12 @@
       } catch(e) {}
     }
 
-    // Send play command
     function playYouTube() {
       try {
         ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
       } catch(e) {}
     }
 
-    // Send unmute command
     function unmuteYouTube() {
       try {
         ytIframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
@@ -1016,7 +1089,6 @@
     });
 
     // Unlock audio on the VERY FIRST interaction anywhere on the page
-    // (touchstart, click, keydown, scroll, touchmove — all covered)
     let audioUnlocked = false;
     function unlockAudio() {
       if (audioUnlocked) return;
@@ -1028,13 +1100,46 @@
         musicIcon.className = 'fas fa-pause-circle';
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
       }
+      // Hide the banner once music has been triggered
+      if (musicStartBanner) musicStartBanner.classList.add('hidden');
     }
 
-    ['click', 'touchstart', 'touchend', 'keydown', 'scroll', 'touchmove', 'pointerdown']
+    // Cover every possible user interaction — even the tiniest scroll
+    ['click', 'touchstart', 'touchend', 'touchmove', 'pointerdown', 'pointermove',
+     'keydown', 'keyup', 'scroll', 'wheel', 'mousedown', 'mouseup', 'mousemove',
+     'gesturestart', 'gesturechange', 'gestureend']
       .forEach(evt => {
         document.addEventListener(evt, unlockAudio, { once: true, passive: true });
         window.addEventListener(evt, unlockAudio, { once: true, passive: true });
       });
+
+    // Also unlock when the user scrolls even 1px
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      if (Math.abs(window.scrollY - lastScrollY) > 0) {
+        unlockAudio();
+      }
+    }, { passive: true });
+
+    // The big banner button — this definitely starts the music
+    function startEverything() {
+      unlockAudio();
+      // Fire a celebratory burst
+      createFirework(canvas.width * 0.5, canvas.height * 0.35);
+      createFirework(canvas.width * 0.3, canvas.height * 0.5);
+      createFirework(canvas.width * 0.7, canvas.height * 0.5);
+      // Pulse animation feedback
+      if (musicStartBanner) {
+        musicStartBanner.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          musicStartBanner.style.transform = '';
+        }, 200);
+      }
+      // Open the surprise overlay as a nice welcome gesture
+      setTimeout(() => {
+        document.getElementById('surpriseOverlay').classList.add('active');
+      }, 400);
+    }
 
     function toggleMusic() {
       if (musicPlaying) {
@@ -1329,7 +1434,7 @@
     document.addEventListener('click', function(e) {
       if (e.target.closest('.gift-box') || e.target.closest('.jar') ||
           e.target.closest('.music-player') || e.target.closest('.candle') ||
-          e.target.closest('.surprise-close')) return;
+          e.target.closest('.surprise-close') || e.target.closest('.music-start-banner')) return;
       if (Math.random() < 0.25) {
         createFirework(e.clientX, e.clientY);
       }
