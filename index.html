@@ -980,29 +980,61 @@
       } catch(e) {}
     }
 
+    // Send play command
+    function playYouTube() {
+      try {
+        ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      } catch(e) {}
+    }
+
+    // Send unmute command
+    function unmuteYouTube() {
+      try {
+        ytIframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+      } catch(e) {}
+    }
+
+    // Start music on load (works on desktop; mobile will start on first tap)
     window.addEventListener('load', () => {
+      loadYouTubeAudio();
+      ytReady = true;
       setTimeout(() => {
-        loadYouTubeAudio();
-        ytReady = true;
-        // Force volume to max once iframe loads, with retries
-        setTimeout(() => setYouTubeVolume(100), 1000);
-        setTimeout(() => setYouTubeVolume(100), 2000);
-        setTimeout(() => setYouTubeVolume(100), 3500);
-      }, 300);
+        playYouTube();
+        unmuteYouTube();
+        setYouTubeVolume(100);
+      }, 1200);
+      setTimeout(() => {
+        playYouTube();
+        unmuteYouTube();
+        setYouTubeVolume(100);
+      }, 2500);
+      setTimeout(() => {
+        playYouTube();
+        unmuteYouTube();
+        setYouTubeVolume(100);
+      }, 4000);
     });
 
-    let userInteracted = false;
-    function ensureMusicPlays() {
-      if (!userInteracted && ytReady && musicPlaying) {
-        try {
-          ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-          ytIframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-        } catch(e) {}
+    // Unlock audio on the VERY FIRST interaction anywhere on the page
+    // (touchstart, click, keydown, scroll, touchmove — all covered)
+    let audioUnlocked = false;
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+      playYouTube();
+      unmuteYouTube();
+      setYouTubeVolume(100);
+      if (musicPlaying) {
+        musicIcon.className = 'fas fa-pause-circle';
+        musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
       }
-      userInteracted = true;
     }
-    document.addEventListener('click', ensureMusicPlays, { once: true });
-    document.addEventListener('touchstart', ensureMusicPlays, { once: true });
+
+    ['click', 'touchstart', 'touchend', 'keydown', 'scroll', 'touchmove', 'pointerdown']
+      .forEach(evt => {
+        document.addEventListener(evt, unlockAudio, { once: true, passive: true });
+        window.addEventListener(evt, unlockAudio, { once: true, passive: true });
+      });
 
     function toggleMusic() {
       if (musicPlaying) {
@@ -1013,10 +1045,9 @@
         musicText.innerHTML = '🎵 BTS - Dynamite (tap to play)';
         musicPlaying = false;
       } else {
-        try {
-          ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-          ytIframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-        } catch(e) {}
+        playYouTube();
+        unmuteYouTube();
+        setYouTubeVolume(100);
         musicIcon.className = 'fas fa-pause-circle';
         musicText.innerHTML = '🎵 BTS - Dynamite (playing...)';
         musicPlaying = true;
