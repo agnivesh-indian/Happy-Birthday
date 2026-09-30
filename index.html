@@ -1592,16 +1592,15 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // tiny random full sakura bloom on tap
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.gift-box') || e.target.closest('.jar') ||
-          e.target.closest('.music-player') || e.target.closest('.candle') ||
-          e.target.closest('.surprise-close') || e.target.closest('.music-start-banner')) return;
-      if (Math.random() < 0.35) {
-        bloomSakuraBurst(e.clientX, e.clientY, 0.7);
-      }
-    });
-
+   // tiny random full sakura bloom on tap — DISABLED
+// document.addEventListener('click', function(e) {
+//   if (e.target.closest('.gift-box') || e.target.closest('.jar') ||
+//       e.target.closest('.music-player') || e.target.closest('.candle') ||
+//       e.target.closest('.surprise-close') || e.target.closest('.music-start-banner')) return;
+//   if (Math.random() < 0.35) {
+//     bloomSakuraBurst(e.clientX, e.clientY, 0.7);
+//   }
+// });
     window.addEventListener('load', () => {
       setTimeout(() => {
         bloomSakuraBurst(canvas.width * 0.2, canvas.height * 0.4, 1);
